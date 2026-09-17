@@ -1,0 +1,6 @@
+# DSH composition layer contributed by dsh-stt-plugin.
+# Applied when this package is listed in a profile (dsh.plugin add) or passed
+# to `dsh web --patch`.
+- insert:
+    - id: stt
+      name: dsh-stt-plugin

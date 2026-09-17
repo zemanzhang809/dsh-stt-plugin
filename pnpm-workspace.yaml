@@ -1,0 +1,6 @@
+packages:
+  - .
+
+allowBuilds:
+  # esbuild ships a platform binary via its postinstall script
+  esbuild: true
