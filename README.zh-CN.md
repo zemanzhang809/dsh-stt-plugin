@@ -26,11 +26,11 @@
 
 ## 安装
 
-### 方式一:从 GitHub 安装进 profile(推荐)
+### 方式一:从 npm registry 安装(推荐;不需要能访问 GitHub)
 
 ```sh
 # 把包安装进 profile 的 node_modules,并注册 bundle 层
-dsh plugin --profile web add github:zemanzhang809/dsh-stt-plugin
+dsh plugin --profile web add dsh-stt-plugin
 
 # 启动(或重启)Harness —— `web` 是 `--profile web` 的内置别名
 dsh web
@@ -38,11 +38,29 @@ dsh web
 
 说明:
 
+- 这是最稳的路径:registry 拉取完全不经过 GitHub,在访问不了 GitHub 的网络下也能装。国内网络建议先把 pnpm 指到 registry 镜像(任意目录执行一次即可):
+
+  ```sh
+  pnpm config set registry https://registry.npmmirror.com
+  ```
+
 - 仓库**直接提交预构建的 `lib/` 产物**——安装本包**不运行任何构建脚本**,因此 pnpm ≥ 10 的构建脚本审批对本包永远不需要(构建工具只放在 devDependencies,供插件仓库内开发使用)。
-- 如果之前用方式二手工装过,先把它的 `insert` 行从 profile 的 `cordis.patch.yml` 里删掉:本方式下包会作为 bundle 层自带该行,重复的 `stt` 条目会导致组合失败。
+- 需要锁定版本时使用 `dsh-stt-plugin@0.1.0`。
+
+### 方式二:从 GitHub 安装(要求能访问 GitHub)
+
+```sh
+dsh plugin --profile web add github:zemanzhang809/dsh-stt-plugin
+```
+
+> **症状对照**:安装停在 `Progress: resolved …` 随后报 `git ls-remote … Could not connect to server`,说明这台机器连不上 github.com——是网络问题,不是插件问题。改用方式一或方式三,或让 git 走代理(`git config --global http.proxy http://127.0.0.1:<端口>`)。
+
+说明:
+
+- 如果之前用方式三手工装过,先把它的 `insert` 行从 profile 的 `cordis.patch.yml` 里删掉:本方式下包会作为 bundle 层自带该行,重复的 `stt` 条目会导致组合失败。
 - 需要锁定版本时使用 `github:zemanzhang809/dsh-stt-plugin#v0.1.0`。
 
-### 方式二:从本地源码安装(开发 / 内测)
+### 方式三:从本地源码安装(开发 / 离线)
 
 ```sh
 # 1. 准备插件检出
@@ -68,7 +86,7 @@ profile 为 `patchReload: "live"` 时保存文件即热重组;否则重启 Harne
 
 包以 `link:` 方式链接,后续开发迭代只需:改 `src/` → `pnpm build` → 刷新浏览器(Host 侧改动需要重启实例)。
 
-### 方式三:验证安装是否生效
+### 方式四:验证安装是否生效
 
 ```sh
 # 组合层检查,无需启动实例;输出中应包含

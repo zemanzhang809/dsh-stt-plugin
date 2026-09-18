@@ -51,5 +51,16 @@
     "stt",
     "speech-to-text",
     "voice-input"
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zemanzhang809/dsh-stt-plugin.git"
+  },
+  "homepage": "https://github.com/zemanzhang809/dsh-stt-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/zemanzhang809/dsh-stt-plugin/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
 }

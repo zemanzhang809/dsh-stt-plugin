@@ -26,11 +26,11 @@ It adds a **microphone toggle** to the conversation composer tool row (beside th
 
 ## Install
 
-### Option 1 — install from GitHub into a profile (recommended)
+### Option 1 — install from the npm registry (recommended; no GitHub access needed)
 
 ```sh
 # installs the package into the profile and adds the bundle layer
-dsh plugin --profile web add github:zemanzhang809/dsh-stt-plugin
+dsh plugin --profile web add dsh-stt-plugin
 
 # boot (or reboot) the harness — `web` is the built-in alias for `--profile web`
 dsh web
@@ -38,11 +38,29 @@ dsh web
 
 Notes:
 
+- This is the most reliable path: a registry fetch never touches GitHub, so it works on networks where GitHub is unreachable. On mainland-China networks, point pnpm at a registry mirror first (any directory):
+
+  ```sh
+  pnpm config set registry https://registry.npmmirror.com
+  ```
+
 - The repository ships **prebuilt `lib/` artifacts** — installing this package runs **no build scripts**, so pnpm ≥ 10 build-script approvals are never needed for it. (Build tooling lives in devDependencies and is only used inside the plugin checkout.)
-- If you previously installed the plugin manually (Option 2), remove its `insert` row from the profile's `cordis.patch.yml` first: installed this way the package joins the bundle layers and contributes the row itself — a duplicate `stt` entry fails composition.
+- To install a pinned version, use `dsh-stt-plugin@0.1.0`.
+
+### Option 2 — install from GitHub (requires GitHub connectivity)
+
+```sh
+dsh plugin --profile web add github:zemanzhang809/dsh-stt-plugin
+```
+
+> **Symptom watch:** if the install stalls at `Progress: resolved …` and then fails with `git ls-remote … Could not connect to server`, your machine cannot reach github.com — that is a network problem, not a plugin problem. Use Option 1 or Option 3, or route git through a proxy (`git config --global http.proxy http://127.0.0.1:<port>`).
+
+Notes:
+
+- If you previously installed the plugin manually (Option 3), remove its `insert` row from the profile's `cordis.patch.yml` first: installed this way the package joins the bundle layers and contributes the row itself — a duplicate `stt` entry fails composition.
 - To install a pinned version, use `github:zemanzhang809/dsh-stt-plugin#v0.1.0`.
 
-### Option 2 — install from a local checkout (development / pre-release)
+### Option 3 — install from a local checkout (development / offline)
 
 ```sh
 # 1. prepare the plugin checkout
@@ -68,7 +86,7 @@ With `patchReload: "live"` in the profile, saving the file hot-reloads the compo
 
 Because the package is linked (`link:`), later development is just: edit `src/` → `pnpm build` → refresh the browser (host-half changes need a restart).
 
-### Option 3 — verify the installation
+### Option 4 — verify the installation
 
 ```sh
 # composition-level check, no boot needed: the output must contain

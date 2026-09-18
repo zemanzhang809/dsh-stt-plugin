@@ -154,6 +154,23 @@ pnpm 安装 **git 依赖**时有两个相互叠加的约束:
 
 另外 `pnpm add <本地目录>` 产生 `link:` 符号链接,**不会执行被链接包的 prepare 脚本**——link 开发迭代时记得手动 `pnpm build`。
 
+### 坑 3.4 分发路径决定安装可达性(`github:` 依赖卡死在 resolved)
+
+`github:` 依赖的第一步是 `git ls-remote` + `git clone` github.com——**在访问不了 GitHub 的网络下,安装会停在 `Progress: resolved …` 直到超时**:
+
+```
+[ERROR] Command failed with exit code 128: git ls-remote "https://github.com/….git" HEAD "HEAD^{}"
+fatal: unable to access 'https://github.com/…': Failed to connect to github.com:443
+```
+
+这与包内容毫无关系,改代码救不了;能改的是**分发路径**。按网络可达性排序:
+
+1. **npm registry**(推荐):registry 拉取不走 GitHub,国内可配 `registry.npmmirror.com` 镜像;包发布后 `dsh plugin --profile web add <包名>` 即可。
+2. **GitHub 直连**:需要网络可达或 git 代理(`git config --global http.proxy …`);README 里应写明 `git ls-remote … Could not connect` 症状对照,避免用户误判为插件问题。
+3. **本地路径兜底**:拷贝目录后 `dsh plugin --profile web add C:\绝对路径\插件目录`(绝对路径原样传给 pnpm)。
+
+配套工程:仓库带 `.github/workflows/publish.yml`(推 `v*` tag 自动 `npm publish`,`NPM_TOKEN` 走 secrets),让 registry 版本与源码同源。另注意 `dsh plugin` CLI 失败时打印的 allowBuilds 提示是通用兜底文案——先看真实报错(pnpm 的 git/registry 错误会原样透传),别被它带偏。
+
 ---
 
 ## 4. 客户端运行时的坑
