@@ -250,7 +250,8 @@ const scope = ctx.get('settingsScope')?.bind({ namespace: 'ui-stt', decode: deco
 ```
 
 - `decode` 可以绕过 schema envelope 的 rehydrate 兼容问题,自行收窄 wire 值。
-- `snapshot.writable` / `snapshot.mode('host'|'memory')` 决定控件是否可写;**不要在不可写时假装成功**,把降级原因显示出来(我们用两行提示文案区分"服务缺失"与"只读/内存模式")。
+- `snapshot.writable` / `snapshot.mode('host'|'memory')` 决定控件是否可写;**不要在不可写时假装成功**,把降级原因显示出来(我们用提示文案区分"服务缺失"与"只读/内存模式")。
+- 更进一步:**不可写 ≠ 禁用控件**。设置存储不可写的环境比想象中常见——组合缺设置服务、页面经非环回地址访问(作用域自动降级进程内存模式)等。把降级做成透明回退:作用域可写时写 DSH 设置存储,否则写浏览器 localStorage(麦克风按钮读同一份生效配置),控件始终可操作,提示文案说明保存位置。禁用开关只会招来"为什么改不了"的报障。
 - `scope.set()` 失败时作用域自身会回滚恢复,但要 `catch` 住 promise,避免未处理的 rejection。
 
 ---

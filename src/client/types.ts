@@ -110,6 +110,6 @@ export interface SttShared {
   schedule(callback: () => void, delayMs: number): () => void
   /** Bound settings scope, or undefined when the settings domain is absent. */
   scope: SettingsScope<SttConfig> | undefined
-  /** Whether the settings scope is persisted by the Host (false = memory only). */
+  /** True when writes persist through the DSH settings store; false = browser-local fallback. */
   persisted(): boolean
 }

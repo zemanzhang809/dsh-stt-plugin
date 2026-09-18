@@ -240,6 +240,33 @@ function installDomStub() {
   check('client: settings page renders', settingsError === null && settingsHtml !== null && settingsHtml.includes('dsh-stt-section'))
   check('client: settings page shows bound values', settingsHtml !== null && settingsHtml.includes('zh-CN'))
   if (settingsError !== null) console.error(settingsError)
+
+  // Read-only scope (settings domain absent / non-loopback page): the page
+  // must fall back to browser-local persistence and keep every control
+  // enabled — no `disabled` attribute anywhere.
+  const roScope = {
+    getSnapshot: () => ({
+      status: 'ready',
+      value: { language: 'auto', continuous: false, autoSend: false },
+      writable: false,
+      mode: 'memory',
+    }),
+    subscribe: () => () => {},
+    set: async () => {},
+  }
+  let roHtml = null
+  try {
+    roHtml = renderToStaticMarkup(React.createElement(entries.settings.component, {
+      t: (key) => key,
+      ...shared,
+      scope: roScope,
+      persisted: () => false,
+    }))
+  } catch (error) {
+    console.error(error)
+  }
+  check('client: read-only scope keeps controls enabled', roHtml !== null && !roHtml.includes('disabled'))
+  check('client: read-only scope shows the fallback hint', roHtml !== null && roHtml.includes('settings.fallback'))
 }
 
 if (failures > 0) {

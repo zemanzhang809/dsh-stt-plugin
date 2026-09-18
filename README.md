@@ -116,7 +116,7 @@ Open **Settings → Voice Input**:
 | Continuous dictation | off | Keep the microphone open until you click the mic button again; phrases accumulate in the draft. |
 | Auto-send after recognition | off | Single-shot mode only: submit the message as soon as a phrase finishes. |
 
-Preferences persist in the DSH settings store and survive refresh and restart. If the settings service is unavailable in your composition, the page shows a hint and the mic button falls back to defaults.
+Preferences persist in the DSH settings store and survive refresh and restart. When that store is not writable in your composition (settings service absent, or the page served from a non-loopback address), the page transparently falls back to this browser's local storage — the controls stay enabled either way, and a hint states where values are kept.
 
 ## Button placement note
 

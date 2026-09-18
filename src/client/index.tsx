@@ -15,6 +15,7 @@
  */
 import type { ReactNode } from 'react'
 import { en, NS, zh } from './locales'
+import { readLocalConfig } from './local-store'
 import { MicButton } from './mic-button'
 import { SttSettingsSection } from './settings-section'
 import { STT_CSS } from './styles'
@@ -105,24 +106,29 @@ export function apply(ctx: ClientContext): void {
     scope = settingsScope.bind<SttConfig>({ namespace: 'ui-stt', decode: decodeConfig })
   }
 
-  let config: SttConfig = { ...DEFAULT_CONFIG }
-  let persisted = false
-  ctx.effect(() => {
-    if (scope === undefined) return undefined
-    const sync = (): void => {
-      const snapshot = scope.getSnapshot()
-      if (snapshot.value !== undefined) config = snapshot.value
-      persisted = snapshot.mode === 'host' && snapshot.status !== 'unavailable'
+  // Effective config: the settings scope when it can persist (snapshot is
+  // ready and writable — the DSH settings store), otherwise the browser-local
+  // fallback. The mic button and the settings page read the same values in
+  // either mode.
+  const readConfig = (): SttConfig => {
+    const snapshot = scope?.getSnapshot()
+    if (snapshot?.status === 'ready' && snapshot.writable && snapshot.value !== undefined) {
+      return snapshot.value
     }
-    sync()
-    return scope.subscribe(sync)
-  }, 'dsh-stt-plugin: settings scope')
+    return readLocalConfig()
+  }
+
+  // True when writes land in the DSH settings store; false = browser-local.
+  const persistedNow = (): boolean => {
+    const snapshot = scope?.getSnapshot()
+    return snapshot?.status === 'ready' && snapshot.writable && snapshot.mode === 'host'
+  }
 
   // Fiber-owned timer (optional; the composition ships one).
   const timer = ctx.get('timer') as TimerService | undefined
 
   const shared: SttShared = {
-    config: () => config,
+    config: readConfig,
     schedule: (callback, delayMs) => {
       if (timer !== undefined && typeof timer.timeout === 'function') {
         return timer.timeout(callback, delayMs)
@@ -133,7 +139,7 @@ export function apply(ctx: ClientContext): void {
       }
     },
     scope,
-    persisted: () => persisted,
+    persisted: persistedNow,
   }
 
   // Microphone toggle in the composer tool row (session-scoped list entry).

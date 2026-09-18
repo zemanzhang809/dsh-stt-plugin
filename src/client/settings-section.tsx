@@ -2,13 +2,14 @@
  * The Voice Input page registered into `settings.section` — one entry in the
  * settings dialog's navigation with a full content column.
  *
- * Values read and write through the bound `ui-stt` settings scope, which the
- * Host half registers with the settings service; when the settings domain is
- * absent from the composition the page degrades to a hint and the mic button
- * keeps using defaults.
+ * Writes go through the bound `ui-stt` settings scope while it accepts
+ * writes; when it cannot persist (settings domain absent, or a non-loopback
+ * page in memory mode) the page transparently falls back to browser-local
+ * storage instead of disabling the controls, and says so in its hint copy.
  */
 import { useEffect, useState, type ReactNode } from 'react'
 import { STT_LANGUAGE_LABELS, STT_LANGUAGES } from '../shared/languages'
+import { readLocalConfig, subscribeLocal, writeLocalField } from './local-store'
 import { isSpeechSupported } from './speech'
 import type { ScopeSnapshot, SttConfig, SttShared, Translate } from './types'
 
@@ -30,6 +31,7 @@ export function SttSettingsSection(props: SttSectionProps): ReactNode {
   const [snapshot, setSnapshot] = useState<ScopeSnapshot<SttConfig> | undefined>(
     scope?.getSnapshot(),
   )
+  const [localConfig, setLocalConfig] = useState<SttConfig>(() => readLocalConfig())
 
   useEffect(() => {
     if (scope === undefined) return undefined
@@ -38,17 +40,26 @@ export function SttSettingsSection(props: SttSectionProps): ReactNode {
     })
   }, [scope])
 
-  const value = snapshot?.value
-  const ready = snapshot !== undefined && snapshot.status === 'ready'
-  const writable = ready && snapshot.writable
+  useEffect(() => subscribeLocal(() => {
+    setLocalConfig(readLocalConfig())
+  }), [])
+
+  // Scope mode: the snapshot is ready and the store accepts writes — the
+  // DSH settings store is the source of truth. Otherwise browser-local.
+  const useScope = snapshot !== undefined && snapshot.status === 'ready' && snapshot.writable
+  const value = useScope ? snapshot.value : localConfig
   const language = value?.language ?? 'auto'
   const continuous = value?.continuous ?? false
   const autoSend = value?.autoSend ?? false
 
-  const setField = (field: string, next: unknown): void => {
-    // A failed write reloads Host state through the scope's own recovery;
-    // swallow the rejection so it never becomes an unhandled rejection.
-    scope?.set(field, next).catch(() => {})
+  const setField = (field: 'language' | 'continuous' | 'autoSend', next: string | boolean): void => {
+    if (useScope) {
+      // A failed write reloads Host state through the scope's own recovery;
+      // swallow the rejection so it never becomes an unhandled rejection.
+      scope?.set(field, next).catch(() => {})
+      return
+    }
+    setLocalConfig(writeLocalField(field, next as never))
   }
 
   return (
@@ -64,7 +75,6 @@ export function SttSettingsSection(props: SttSectionProps): ReactNode {
         <select
           className="dsh-stt-select"
           value={language}
-          disabled={!writable}
           onChange={(event) => {
             setField('language', event.currentTarget.value)
           }}
@@ -89,7 +99,6 @@ export function SttSettingsSection(props: SttSectionProps): ReactNode {
           aria-checked={continuous}
           aria-label={t('settings.continuous')}
           data-on={continuous ? 'true' : 'false'}
-          disabled={!writable}
           onClick={() => {
             setField('continuous', !continuous)
           }}
@@ -108,7 +117,6 @@ export function SttSettingsSection(props: SttSectionProps): ReactNode {
           aria-checked={autoSend}
           aria-label={t('settings.autosend')}
           data-on={autoSend ? 'true' : 'false'}
-          disabled={!writable}
           onClick={() => {
             setField('autoSend', !autoSend)
           }}
@@ -116,7 +124,7 @@ export function SttSettingsSection(props: SttSectionProps): ReactNode {
       </div>
 
       {persisted() ? null : (
-        <p className="dsh-stt-note">{scope === undefined ? t('settings.unavailable') : t('settings.readonly')}</p>
+        <p className="dsh-stt-note">{t('settings.fallback')}</p>
       )}
     </div>
   )

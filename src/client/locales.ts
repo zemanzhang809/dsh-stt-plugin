@@ -27,6 +27,7 @@ export const zh: Record<string, string> = {
   'settings.supported.no': '当前浏览器不支持语音识别，请使用 Chrome 或 Edge。',
   'settings.readonly': '当前连接的设置存储为只读（或进程内存模式），修改仅对当前页面生效。',
   'settings.unavailable': '设置服务不可用，语音输入将使用默认配置。',
+  'settings.fallback': '设置服务当前不可写入，更改将保存在本浏览器中（不影响其他设备）。',
 }
 
 /** English copy. */
@@ -49,4 +50,5 @@ export const en: Record<string, string> = {
   'settings.supported.no': 'This browser does not support speech recognition; use Chrome or Edge.',
   'settings.readonly': 'The settings store is read-only (or process-local) on this connection; changes apply to this page only.',
   'settings.unavailable': 'The settings service is unavailable; voice input uses defaults.',
+  'settings.fallback': 'The settings store is not writable right now — changes are kept in this browser (they do not follow you to other devices).',
 }
