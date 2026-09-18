@@ -23,6 +23,7 @@ import { STT_LANGUAGES } from '../shared/languages'
 import type {
   ClientContext,
   LocaleService,
+  PluginManagerFace,
   SettingsScope,
   SettingsScopeBinder,
   SlotsService,
@@ -127,6 +128,17 @@ export function apply(ctx: ClientContext): void {
   // Fiber-owned timer (optional; the composition ships one).
   const timer = ctx.get('timer') as TimerService | undefined
 
+  // Plugin-manager client service (optional; shipped by the web bundle's
+  // plugin-manager). Read at apply time — bundle ordering puts its provider
+  // ahead of this patch-layer plugin. When absent, the uninstall affordance
+  // hides and users manage plugins through the manager UI or the CLI.
+  const managerCandidate = ctx.get('pluginManager') as PluginManagerFace | undefined
+  const manager = managerCandidate !== undefined
+    && typeof managerCandidate.list === 'function'
+    && typeof managerCandidate.uninstall === 'function'
+    ? managerCandidate
+    : undefined
+
   const shared: SttShared = {
     config: readConfig,
     schedule: (callback, delayMs) => {
@@ -140,6 +152,7 @@ export function apply(ctx: ClientContext): void {
     },
     scope,
     persisted: persistedNow,
+    manager,
   }
 
   // Microphone toggle in the composer tool row (session-scoped list entry).

@@ -65,6 +65,8 @@ function installDomStub() {
   if (!globalThis.navigator) {
     globalThis.navigator = { language: 'en-US' }
   }
+  // The uninstall affordance is local-only; simulate a loopback page.
+  globalThis.location = { hostname: '127.0.0.1' }
 }
 
 // --- Phase 1: Host half ------------------------------------------------------
@@ -267,6 +269,25 @@ function installDomStub() {
   }
   check('client: read-only scope keeps controls enabled', roHtml !== null && !roHtml.includes('disabled'))
   check('client: read-only scope shows the fallback hint', roHtml !== null && roHtml.includes('settings.fallback'))
+
+  // Uninstall affordance: hidden without the plugin-manager service, shown
+  // with it on a loopback page.
+  check('client: uninstall zone hidden without plugin-manager', settingsHtml !== null && !settingsHtml.includes('settings.uninstall'))
+  const fakeManager = {
+    list: async () => [{ id: 'stt', name: 'dsh-stt-plugin', version: '0.1.1' }],
+    uninstall: async () => {},
+  }
+  let managedHtml = null
+  try {
+    managedHtml = renderToStaticMarkup(React.createElement(entries.settings.component, {
+      t: (key) => key,
+      ...shared,
+      manager: fakeManager,
+    }))
+  } catch (error) {
+    console.error(error)
+  }
+  check('client: uninstall button renders with plugin-manager', managedHtml !== null && managedHtml.includes('settings.uninstall'))
 }
 
 if (failures > 0) {

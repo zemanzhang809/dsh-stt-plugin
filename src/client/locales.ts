@@ -28,6 +28,13 @@ export const zh: Record<string, string> = {
   'settings.readonly': '当前连接的设置存储为只读（或进程内存模式），修改仅对当前页面生效。',
   'settings.unavailable': '设置服务不可用，语音输入将使用默认配置。',
   'settings.fallback': '设置服务当前不可写入，更改将保存在本浏览器中（不影响其他设备）。',
+  'settings.uninstall': '卸载本插件',
+  'settings.uninstall.hint': '通过插件管理器移除本插件的安装目录与配置行，重启 Harness 后生效。',
+  'settings.uninstall.busy': '正在卸载…',
+  'settings.uninstall.confirm': '确定卸载语音输入插件吗？安装目录与配置行将被移除，重启 Harness 后生效。',
+  'settings.uninstall.restart': '已提交卸载：插件将在重启 Harness 后移除。感谢使用！',
+  'settings.uninstall.missing': '插件管理器未跟踪本插件（可能是手工安装）。请在终端执行：dsh plugin --profile web remove dsh-stt-plugin',
+  'settings.uninstall.failed': '卸载失败：',
 }
 
 /** English copy. */
@@ -51,4 +58,11 @@ export const en: Record<string, string> = {
   'settings.readonly': 'The settings store is read-only (or process-local) on this connection; changes apply to this page only.',
   'settings.unavailable': 'The settings service is unavailable; voice input uses defaults.',
   'settings.fallback': 'The settings store is not writable right now — changes are kept in this browser (they do not follow you to other devices).',
+  'settings.uninstall': 'Uninstall this plugin',
+  'settings.uninstall.hint': 'Removes this plugin\'s install directory and configuration row through the plugin manager; applies after restarting the harness.',
+  'settings.uninstall.busy': 'Uninstalling…',
+  'settings.uninstall.confirm': 'Uninstall the Voice Input plugin? Its install directory and configuration row will be removed; the change applies after restarting the harness.',
+  'settings.uninstall.restart': 'Uninstall submitted: the plugin will be removed when the harness restarts. Thanks for using it!',
+  'settings.uninstall.missing': 'The plugin manager does not track this plugin (manual install?). Run in a terminal: dsh plugin --profile web remove dsh-stt-plugin',
+  'settings.uninstall.failed': 'Uninstall failed: ',
 }

@@ -13,6 +13,24 @@ import { readLocalConfig, subscribeLocal, writeLocalField } from './local-store'
 import { isSpeechSupported } from './speech'
 import type { ScopeSnapshot, SttConfig, SttShared, Translate } from './types'
 
+/** This plugin's package name — the uninstall target row's `name`. */
+const PLUGIN_NAME = 'dsh-stt-plugin'
+
+/** Whether the page is served from a local address (uninstall is local-only). */
+function isLoopbackPage(): boolean {
+  if (typeof location === 'undefined') return false
+  const host = location.hostname.toLowerCase()
+  return host === 'localhost' || host === '127.0.0.1' || host === '[::1]' || host === '::1'
+}
+
+/** Lifecycle of the uninstall affordance. */
+type UninstallState =
+  | { kind: 'idle' }
+  | { kind: 'busy' }
+  | { kind: 'done' }
+  | { kind: 'missing' }
+  | { kind: 'failed'; message: string }
+
 /** Component props as assembled by the settings shell renderer. */
 export interface SttSectionProps extends SttShared {
   /** Localized copy (bound by the registration's `locale` option). */
@@ -27,7 +45,7 @@ export interface SttSectionProps extends SttShared {
  * @returns the section element tree.
  */
 export function SttSettingsSection(props: SttSectionProps): ReactNode {
-  const { t, scope, persisted } = props
+  const { t, scope, persisted, manager } = props
   const [snapshot, setSnapshot] = useState<ScopeSnapshot<SttConfig> | undefined>(
     scope?.getSnapshot(),
   )
@@ -126,6 +144,65 @@ export function SttSettingsSection(props: SttSectionProps): ReactNode {
       {persisted() ? null : (
         <p className="dsh-stt-note">{t('settings.fallback')}</p>
       )}
+
+      <UninstallZone manager={manager} t={t} />
+    </div>
+  )
+}
+
+/**
+ * Self-uninstall affordance: routes through the plugin-manager client
+ * service when it is composed and the page is local; hidden otherwise
+ * (the manager UI or `dsh plugin --profile web remove` remain the paths).
+ */
+function UninstallZone(props: { manager: SttSectionProps['manager']; t: Translate }): ReactNode {
+  const { manager, t } = props
+  const [state, setState] = useState<UninstallState>({ kind: 'idle' })
+
+  if (manager === undefined || !isLoopbackPage()) return null
+
+  const onUninstall = (): void => {
+    if (state.kind === 'busy') return
+    if (!window.confirm(t('settings.uninstall.confirm'))) return
+    setState({ kind: 'busy' })
+    void (async () => {
+      try {
+        const rows = await manager.list()
+        const row = rows.find((item) => item.name === PLUGIN_NAME || item.id === PLUGIN_NAME)
+        if (row === undefined) {
+          setState({ kind: 'missing' })
+          return
+        }
+        await manager.uninstall(row.id)
+        setState({ kind: 'done' })
+      } catch (reason) {
+        setState({ kind: 'failed', message: reason instanceof Error ? reason.message : String(reason) })
+      }
+    })()
+  }
+
+  return (
+    <div className="dsh-stt-danger-zone">
+      {state.kind === 'done' ? (
+        <p className="dsh-stt-note">{t('settings.uninstall.restart')}</p>
+      ) : state.kind === 'missing' ? (
+        <p className="dsh-stt-note">{t('settings.uninstall.missing')}</p>
+      ) : (
+        <>
+          <span className="dsh-stt-row-hint">{t('settings.uninstall.hint')}</span>
+          <button
+            type="button"
+            className="dsh-stt-danger"
+            disabled={state.kind === 'busy'}
+            onClick={onUninstall}
+          >
+            {state.kind === 'busy' ? t('settings.uninstall.busy') : t('settings.uninstall')}
+          </button>
+        </>
+      )}
+      {state.kind === 'failed' ? (
+        <p className="dsh-stt-note">{t('settings.uninstall.failed')}{state.message}</p>
+      ) : null}
     </div>
   )
 }

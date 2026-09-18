@@ -116,4 +116,29 @@ export const STT_CSS = `
 .dsh-stt-switch[data-on="true"]::after {
   transform: translateX(14px);
 }
+.dsh-stt-danger {
+  align-self: flex-start;
+  padding: 6px 14px;
+  border: 1px solid var(--dsw-alias-border-l2, rgba(0, 0, 0, 0.12));
+  border-radius: 6px;
+  background: transparent;
+  color: var(--dsw-alias-label-danger, #d64545);
+  font-size: 13px;
+  cursor: pointer;
+}
+.dsh-stt-danger:hover:not(:disabled) {
+  background: var(--dsw-alias-bg-danger, rgba(214, 69, 69, 0.1));
+  border-color: var(--dsw-alias-label-danger, #d64545);
+}
+.dsh-stt-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.dsh-stt-danger-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dsw-alias-border-l2, rgba(0, 0, 0, 0.12));
+}
 `

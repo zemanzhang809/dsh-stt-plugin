@@ -80,6 +80,14 @@ export interface SettingsScopeBinder {
   bind<T>(spec: { namespace: string; decode?: (section: unknown) => T | undefined }): SettingsScope<T>
 }
 
+/** Minimal structural face of the plugin-manager client service. */
+export interface PluginManagerFace {
+  /** Installed user-plugin rows (id is the uninstall target). */
+  list(): Promise<Array<{ id: string; name: string; version?: string }>>
+  /** Remove one plugin's install directory and configuration row. */
+  uninstall(id: string): Promise<unknown>
+}
+
 /** The public input-action face every session-scope slot component receives. */
 export interface InputActions {
   /** Replace the whole composer draft. */
@@ -112,4 +120,10 @@ export interface SttShared {
   scope: SettingsScope<SttConfig> | undefined
   /** True when writes persist through the DSH settings store; false = browser-local fallback. */
   persisted(): boolean
+  /**
+   * The plugin-manager client service, present only when that plugin is
+   * composed and the page is local; undefined otherwise (the uninstall
+   * affordance hides).
+   */
+  manager?: PluginManagerFace | undefined
 }
