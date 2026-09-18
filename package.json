@@ -1,6 +1,6 @@
 {
   "name": "dsh-stt-plugin",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Speech-to-text (voice input) plugin for DeepSeek Harness — a microphone toggle in the composer tool row and a Voice Input settings page.",
   "license": "MIT",
   "type": "module",
@@ -26,14 +26,12 @@
     "check": "tsc --noEmit",
     "test": "node scripts/smoke.mjs"
   },
-  "dependencies": {
-    "schemastery": "^3.18.0"
-  },
   "devDependencies": {
     "@types/react": "^18.3.12",
     "esbuild": "^0.25.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "schemastery": "3.18.0",
     "typescript": "^5.8.3"
   },
   "dsh": {

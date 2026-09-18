@@ -44,7 +44,7 @@ Notes:
   pnpm config set registry https://registry.npmmirror.com
   ```
 
-- The repository ships **prebuilt `lib/` artifacts** — installing this package runs **no build scripts**, so pnpm ≥ 10 build-script approvals are never needed for it. (Build tooling lives in devDependencies and is only used inside the plugin checkout.)
+- The repository ships **prebuilt `lib/` artifacts** with **zero runtime dependencies** (schemastery is bundled) — installing this package runs **no build scripts** and pulls **no transitive packages**, so pnpm ≥ 10 build-script approvals and fresh-release supply-chain policies never apply to it. (Build tooling lives in devDependencies and is only used inside the plugin checkout.)
 - To install a pinned version, use `dsh-stt-plugin@0.1.0`.
 
 ### Option 2 — install from GitHub (requires GitHub connectivity)
@@ -54,6 +54,13 @@ dsh plugin --profile web add github:zemanzhang809/dsh-stt-plugin
 ```
 
 > **Symptom watch:** if the install stalls at `Progress: resolved …` and then fails with `git ls-remote … Could not connect to server`, your machine cannot reach github.com — that is a network problem, not a plugin problem. Use Option 1 or Option 3, or route git through a proxy (`git config --global http.proxy http://127.0.0.1:<port>`).
+>
+> A second failure shape is `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION` on a package you have never heard of (e.g. `style-mod`): any `pnpm add` re-resolves the whole profile, and a transitive dependency of some *other* package released a version too recently for pnpm's default 24-hour supply-chain policy. Pin that package to its previous version in the **profile's** `pnpm-workspace.yaml` and re-run:
+>
+> ```yaml
+> overrides:
+>   style-mod: 4.1.3
+> ```
 
 Notes:
 

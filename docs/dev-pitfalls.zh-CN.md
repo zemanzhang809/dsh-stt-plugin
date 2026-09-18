@@ -171,6 +171,23 @@ fatal: unable to access 'https://github.com/…': Failed to connect to github.co
 
 配套工程:仓库带 `.github/workflows/publish.yml`(推 `v*` tag 自动 `npm publish`,`NPM_TOKEN` 走 secrets),让 registry 版本与源码同源。另注意 `dsh plugin` CLI 失败时打印的 allowBuilds 提示是通用兜底文案——先看真实报错(pnpm 的 git/registry 错误会原样透传),别被它带偏。
 
+### 坑 3.5 供应链策略拦截"刚发布的传递依赖"
+
+pnpm ≥ 11.7 默认带 `minimumReleaseAge` 策略(新发布的包要放行约 24 小时才能进 lockfile)。**任何** `pnpm add` 都会重解析整个 profile,因此某个毫不相关的包的传递依赖刚发新版,就会拦下你的安装:
+
+```
+[ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION] style-mod@4.1.4 was published at …,
+within the minimumReleaseAge cutoff (…)
+```
+
+`style-mod` 属于 CodeMirror 链(`@codemirror/language`/`@codemirror/view`),与语音插件毫无关系——但锅常被算到"正在装的那个包"头上。处置:
+
+1. **钉回上一个可用版本**(推荐):在 profile 的 `pnpm-workspace.yaml` 加 `overrides: { style-mod: 4.1.3 }`,重试;既保住策略防线,又不等时间。
+2. **等它放行**:24 小时后重跑。
+3. 不建议整体关掉策略( defeats 其供应链意义)。
+
+对本插件包的工程启示:**零运行时依赖**。schemastery 已打进 `lib/index.js`(devDependencies 保留构建副本),消费端安装不再从 registry 解析任何传递包——本包自身永远不会再触发这类策略。但这只保护自己的依赖链;profile 里其他包的新鲜传递依赖仍可能拦安装,只能按上面处置。
+
 ---
 
 ## 4. 客户端运行时的坑

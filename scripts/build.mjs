@@ -4,8 +4,10 @@
  * Emits the two artifacts the DSH runtime expects from a dual-face bundle:
  *
  * - `lib/index.js`  — the Host (Node) half, ESM, imported by the Cordis
- *   loader through the package's `.` export. `schemastery` stays external
- *   (it is a real dependency resolved from node_modules on disk).
+ *   loader through the package's `.` export. `schemastery` is bundled in:
+ *   the package ships zero runtime dependencies, so a consumer install never
+ *   resolves a transitive package that a fresh release could trip supply-
+ *   chain policies (minimumReleaseAge) over.
  * - `lib/client.js` — the browser half, a classic CJS script that registers
  *   its factory with the DSH client module loader:
  *
@@ -37,7 +39,6 @@ await build({
   platform: 'node',
   target: 'node18',
   sourcemap: true,
-  external: ['schemastery'],
 })
 
 // Client half — browser classic script with the module-loader handoff.

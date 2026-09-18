@@ -7,10 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      schemastery:
-        specifier: ^3.18.0
-        version: 3.18.0
     devDependencies:
       '@types/react':
         specifier: ^18.3.12
@@ -24,6 +20,9 @@ importers:
       react-dom:
         specifier: ^18.3.1
         version: 18.3.1(react@18.3.1)
+      schemastery:
+        specifier: 3.18.0
+        version: 3.18.0
       typescript:
         specifier: ^5.8.3
         version: 5.9.3

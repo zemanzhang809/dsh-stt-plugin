@@ -44,7 +44,7 @@ dsh web
   pnpm config set registry https://registry.npmmirror.com
   ```
 
-- 仓库**直接提交预构建的 `lib/` 产物**——安装本包**不运行任何构建脚本**,因此 pnpm ≥ 10 的构建脚本审批对本包永远不需要(构建工具只放在 devDependencies,供插件仓库内开发使用)。
+- 仓库**直接提交预构建的 `lib/` 产物**,且**零运行时依赖**(schemastery 已打包进产物)——安装本包**不运行任何构建脚本**、**不拉取任何传递依赖**,pnpm ≥ 10 的构建脚本审批与"新发布包放行时长"类供应链策略对本包均不适用(构建工具只放在 devDependencies,供插件仓库内开发使用)。
 - 需要锁定版本时使用 `dsh-stt-plugin@0.1.0`。
 
 ### 方式二:从 GitHub 安装(要求能访问 GitHub)
@@ -54,6 +54,13 @@ dsh plugin --profile web add github:zemanzhang809/dsh-stt-plugin
 ```
 
 > **症状对照**:安装停在 `Progress: resolved …` 随后报 `git ls-remote … Could not connect to server`,说明这台机器连不上 github.com——是网络问题,不是插件问题。改用方式一或方式三,或让 git 走代理(`git config --global http.proxy http://127.0.0.1:<端口>`)。
+>
+> 另一种失败形态是 `ERR_PNPM_MINIMUM_RELEASE_AGE_VIOLATION`,指向一个你从没听过的包(如 `style-mod`):任何 `pnpm add` 都会重解析整个 profile,某个**其他**包的传递依赖刚发布了新版本,触发了 pnpm 默认的 24 小时放行策略。在 **profile 的** `pnpm-workspace.yaml` 里把该包钉回上一个可用版本后重试:
+>
+> ```yaml
+> overrides:
+>   style-mod: 4.1.3
+> ```
 
 说明:
 
