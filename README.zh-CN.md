@@ -38,23 +38,17 @@ dsh web
 
 说明:
 
-- git 安装后 pnpm 会运行 `prepare` 脚本构建 `lib/`。若 pnpm ≥ 10 提示授权构建脚本,按提示允许,或在 profile 的 `pnpm-workspace.yaml` 中加入:
-
-  ```yaml
-  allowBuilds:
-    dsh-stt-plugin: true   # 包自身的 prepare(构建)脚本
-    esbuild: true          # esbuild 的 postinstall(平台二进制)
-  ```
-
+- 仓库**直接提交预构建的 `lib/` 产物**——安装本包**不运行任何构建脚本**,因此 pnpm ≥ 10 的构建脚本审批对本包永远不需要(构建工具只放在 devDependencies,供插件仓库内开发使用)。
+- 如果之前用方式二手工装过,先把它的 `insert` 行从 profile 的 `cordis.patch.yml` 里删掉:本方式下包会作为 bundle 层自带该行,重复的 `stt` 条目会导致组合失败。
 - 需要锁定版本时使用 `github:zemanzhang809/dsh-stt-plugin#v0.1.0`。
 
 ### 方式二:从本地源码安装(开发 / 内测)
 
 ```sh
-# 1. 构建一次插件
+# 1. 准备插件检出
 git clone https://github.com/zemanzhang809/dsh-stt-plugin.git
 cd dsh-stt-plugin
-pnpm install       # prepare 脚本构建 lib/
+pnpm install && pnpm build   # lib/ 已随仓库提交;改过 src/ 才需要重新构建
 
 # 2. 链接进目标 profile 的 node_modules
 cd ~/.dsh/profiles/web

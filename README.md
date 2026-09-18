@@ -38,23 +38,17 @@ dsh web
 
 Notes:
 
-- pnpm runs the package's `prepare` script after a git install, which builds `lib/`. If pnpm ≥ 10 asks to authorize build scripts, accept it, or add to the profile's `pnpm-workspace.yaml`:
-
-  ```yaml
-  allowBuilds:
-    dsh-stt-plugin: true   # the package's own prepare (build) script
-    esbuild: true          # esbuild's postinstall (platform binary)
-  ```
-
+- The repository ships **prebuilt `lib/` artifacts** — installing this package runs **no build scripts**, so pnpm ≥ 10 build-script approvals are never needed for it. (Build tooling lives in devDependencies and is only used inside the plugin checkout.)
+- If you previously installed the plugin manually (Option 2), remove its `insert` row from the profile's `cordis.patch.yml` first: installed this way the package joins the bundle layers and contributes the row itself — a duplicate `stt` entry fails composition.
 - To install a pinned version, use `github:zemanzhang809/dsh-stt-plugin#v0.1.0`.
 
 ### Option 2 — install from a local checkout (development / pre-release)
 
 ```sh
-# 1. build the plugin once
+# 1. prepare the plugin checkout
 git clone https://github.com/zemanzhang809/dsh-stt-plugin.git
 cd dsh-stt-plugin
-pnpm install       # prepare script builds lib/
+pnpm install && pnpm build   # lib/ is also committed; rebuild only after editing src/
 
 # 2. link it into the target profile's node_modules
 cd ~/.dsh/profiles/web
